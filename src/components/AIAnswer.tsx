@@ -1,3 +1,5 @@
+import DataVisualization from './DataVisualization';
+
 interface SearchResult {
   title: string;
   url: string;
@@ -5,12 +7,27 @@ interface SearchResult {
   sourceId: number;
 }
 
+interface ChartData {
+  type: 'bar' | 'line' | 'pie';
+  title: string;
+  description?: string;
+  data: Array<{
+    name: string;
+    value: number;
+    [key: string]: any;
+  }>;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
+  colors?: string[];
+}
+
 interface AIAnswerProps {
   answer: string;
   results: SearchResult[];
+  visualizationData?: ChartData | null;
 }
 
-export default function AIAnswer({ answer, results }: AIAnswerProps) {
+export default function AIAnswer({ answer, results, visualizationData }: AIAnswerProps) {
   if (!answer) return null;
 
   // Parse citations and make them clickable pills
@@ -77,7 +94,7 @@ export default function AIAnswer({ answer, results }: AIAnswerProps) {
               }, 2000);
             }
           }}
-          className="inline-flex items-center px-2 py-1 mx-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors cursor-pointer border border-blue-200"
+          className="inline-flex items-center px-2.5 py-1 mx-1 text-xs font-semibold bg-blue-600/20 text-blue-400 rounded-full hover:bg-blue-600/30 hover:text-blue-300 transition-all duration-200 cursor-pointer border border-blue-500/30 hover:border-blue-400/50 backdrop-blur-sm"
           title={source ? `Go to: ${source.title}` : `Go to: ${match[1]}`}
         >
           {citationIndex}
@@ -103,15 +120,34 @@ export default function AIAnswer({ answer, results }: AIAnswerProps) {
 
 
   return (
-    <div className="w-full max-w-4xl mx-auto mt-8">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800">Answer</h2>
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-        <div className="prose prose-blue max-w-none">
-          <p className="text-gray-800 leading-relaxed text-base">
-            {parseCitations(answer)}
-          </p>
+    <div className="w-full max-w-5xl mx-auto mt-8">
+      <div className="relative">
+        {/* Subtle glow effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-600/10 rounded-2xl blur-xl"></div>
+        
+        {/* Main content */}
+        <div className="relative bg-gray-800/30 backdrop-blur-sm border border-gray-700/30 rounded-2xl p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-semibold text-white">Answer</h2>
+          </div>
+          
+          <div className="prose prose-lg max-w-none">
+            <div className="text-gray-200 leading-relaxed text-base space-y-4">
+              {parseCitations(answer)}
+            </div>
+          </div>
         </div>
       </div>
+      
+      {/* Render visualization if present */}
+      {visualizationData && (
+        <DataVisualization chartData={visualizationData} />
+      )}
     </div>
   );
 } 
