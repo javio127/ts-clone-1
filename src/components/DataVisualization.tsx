@@ -47,30 +47,31 @@ export default function DataVisualization({ chartData }: DataVisualizationProps)
       case 'bar':
         return (
           <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
             <XAxis 
               dataKey="name" 
-              tick={{ fill: '#9ca3af', fontSize: 12 }}
-              axisLine={{ stroke: '#6b7280' }}
-              tickLine={{ stroke: '#6b7280' }}
-              label={{ value: xAxisLabel, position: 'insideBottom', offset: -10, style: { fill: '#9ca3af' } }}
+              tick={{ fill: '#6b7280', fontSize: 12 }}
+              axisLine={{ stroke: '#9ca3af' }}
+              tickLine={{ stroke: '#9ca3af' }}
+              label={{ value: xAxisLabel, position: 'insideBottom', offset: -10, style: { fill: '#6b7280' } }}
             />
             <YAxis 
-              tick={{ fill: '#9ca3af', fontSize: 12 }}
-              axisLine={{ stroke: '#6b7280' }}
-              tickLine={{ stroke: '#6b7280' }}
-              label={{ value: yAxisLabel, angle: -90, position: 'insideLeft', style: { fill: '#9ca3af' } }}
+              tick={{ fill: '#6b7280', fontSize: 12 }}
+              axisLine={{ stroke: '#9ca3af' }}
+              tickLine={{ stroke: '#9ca3af' }}
+              label={{ value: yAxisLabel, angle: -90, position: 'insideLeft', style: { fill: '#6b7280' } }}
               domain={['dataMin - 2', 'dataMax + 2']}
             />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: '#1f2937', 
-                border: '1px solid #374151', 
+                backgroundColor: '#ffffff', 
+                border: '1px solid #d1d5db', 
                 borderRadius: '8px',
-                color: '#f9fafb'
+                color: '#374151',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               }}
             />
-            <Legend wrapperStyle={{ color: '#9ca3af' }} />
+            <Legend wrapperStyle={{ color: '#6b7280' }} />
             <Bar dataKey="value" fill={colors[0]} radius={[4, 4, 0, 0]} />
           </BarChart>
         );
@@ -78,37 +79,38 @@ export default function DataVisualization({ chartData }: DataVisualizationProps)
       case 'line':
         return (
           <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#d1d5db" />
             <XAxis 
               dataKey="name"
-              tick={{ fill: '#9ca3af', fontSize: 12 }}
-              axisLine={{ stroke: '#6b7280' }}
-              tickLine={{ stroke: '#6b7280' }}
-              label={{ value: xAxisLabel, position: 'insideBottom', offset: -10, style: { fill: '#9ca3af' } }}
+              tick={{ fill: '#6b7280', fontSize: 12 }}
+              axisLine={{ stroke: '#9ca3af' }}
+              tickLine={{ stroke: '#9ca3af' }}
+              label={{ value: xAxisLabel, position: 'insideBottom', offset: -10, style: { fill: '#6b7280' } }}
             />
             <YAxis 
-              tick={{ fill: '#9ca3af', fontSize: 12 }}
-              axisLine={{ stroke: '#6b7280' }}
-              tickLine={{ stroke: '#6b7280' }}
-              label={{ value: yAxisLabel, angle: -90, position: 'insideLeft', style: { fill: '#9ca3af' } }}
+              tick={{ fill: '#6b7280', fontSize: 12 }}
+              axisLine={{ stroke: '#9ca3af' }}
+              tickLine={{ stroke: '#9ca3af' }}
+              label={{ value: yAxisLabel, angle: -90, position: 'insideLeft', style: { fill: '#6b7280' } }}
               domain={['dataMin - 2', 'dataMax + 2']}
             />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: '#1f2937', 
-                border: '1px solid #374151', 
+                backgroundColor: '#ffffff', 
+                border: '1px solid #d1d5db', 
                 borderRadius: '8px',
-                color: '#f9fafb'
+                color: '#374151',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               }}
             />
-            <Legend wrapperStyle={{ color: '#9ca3af' }} />
+            <Legend wrapperStyle={{ color: '#6b7280' }} />
             <Line 
               type="monotone" 
               dataKey="value" 
               stroke={colors[0]} 
               strokeWidth={3}
               dot={{ fill: colors[0], strokeWidth: 0, r: 4 }}
-              activeDot={{ r: 6, stroke: colors[0], strokeWidth: 2, fill: '#1f2937' }}
+              activeDot={{ r: 6, stroke: colors[0], strokeWidth: 2, fill: '#ffffff' }}
             />
           </LineChart>
         );
@@ -125,7 +127,7 @@ export default function DataVisualization({ chartData }: DataVisualizationProps)
               outerRadius={100}
               fill="#8884d8"
               dataKey="value"
-              stroke="#1f2937"
+              stroke="#ffffff"
               strokeWidth={2}
             >
               {data.map((entry, index) => (
@@ -134,13 +136,14 @@ export default function DataVisualization({ chartData }: DataVisualizationProps)
             </Pie>
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: '#1f2937', 
-                border: '1px solid #374151', 
+                backgroundColor: '#ffffff', 
+                border: '1px solid #d1d5db', 
                 borderRadius: '8px',
-                color: '#f9fafb'
+                color: '#374151',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               }}
             />
-            <Legend wrapperStyle={{ color: '#9ca3af' }} />
+            <Legend wrapperStyle={{ color: '#6b7280' }} />
           </PieChart>
         );
 
@@ -152,11 +155,11 @@ export default function DataVisualization({ chartData }: DataVisualizationProps)
   return (
     <div className="w-full max-w-5xl mx-auto mt-6 mb-6">
       <div className="relative">
-        {/* Subtle glow effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-2xl blur-xl"></div>
+        {/* Subtle shadow effect */}
+        <div className="absolute inset-0 bg-gray-100/50 rounded-2xl blur-xl"></div>
         
         {/* Main content */}
-        <div className="relative bg-gray-800/20 backdrop-blur-sm border border-gray-700/30 rounded-2xl p-8">
+        <div className="relative bg-white border border-gray-200 rounded-2xl p-8 shadow-lg">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg flex items-center justify-center">
               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,17 +167,17 @@ export default function DataVisualization({ chartData }: DataVisualizationProps)
               </svg>
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-white mb-1">{title}</h3>
+              <h3 className="text-xl font-semibold text-gray-800 mb-1">{title}</h3>
               {description && (
-                <p className="text-sm text-gray-400 mb-1">{description}</p>
+                <p className="text-sm text-gray-600 mb-1">{description}</p>
               )}
               {dataSource && (
-                <p className="text-xs text-green-400 font-medium">📊 Source: {dataSource}</p>
+                <p className="text-xs text-green-600 font-medium">📊 Source: {dataSource}</p>
               )}
             </div>
           </div>
           
-          <div className="w-full h-80 bg-gray-900/50 rounded-xl p-4">
+          <div className="w-full h-80 bg-gray-50 rounded-xl p-4">
             <ResponsiveContainer width="100%" height="100%">
               {renderChart()}
             </ResponsiveContainer>

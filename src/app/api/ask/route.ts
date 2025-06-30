@@ -44,28 +44,44 @@ export async function POST(request: NextRequest) {
 
     
 
-    // First, get web search results
-    const response = await openai.responses.create({
-      model: "gpt-4o-mini",
-      tools: [{ 
-        type: "web_search_preview",
-        search_context_size: "low"
-      }],
-      input: query,
-    });
+    // Get web search results with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+    
+    let response;
+    try {
+      response = await openai.responses.create({
+        model: "gpt-4o-mini",
+        tools: [{ 
+          type: "web_search_preview",
+          search_context_size: "low"
+        }],
+        input: query,
+      });
+      clearTimeout(timeoutId);
+    } catch (error) {
+      clearTimeout(timeoutId);
+      console.error('OpenAI API timeout or error:', error);
+      return NextResponse.json({ 
+        results: [],
+        answer: "I'm experiencing slow response times. Please try again in a moment.",
+        visualizationData: null 
+      });
+    }
 
-    // Extract citations from annotations
+    // Extract content and annotations
     const messageContent = response.output.find(item => item.type === 'message');
     const textContent = messageContent?.content?.[0] as TextContent;
     const annotations = textContent?.annotations || [];
 
-    // Format results from citations
-    const results = annotations
+    // Get the raw answer text
+    let fullAnswer = textContent?.text || "I couldn't generate an answer based on the search results.";
+    
+    // Try to extract real citations from annotations
+    let results = annotations
       .filter((annotation): annotation is URLCitation => annotation.type === 'url_citation')
       .map((annotation, index) => {
-        // Clean up URL by removing UTM parameters and other tracking
         const cleanUrl = annotation.url.split('?')[0];
-        
         return {
           title: annotation.title || 'Web Source',
           url: cleanUrl,
@@ -74,116 +90,109 @@ export async function POST(request: NextRequest) {
         };
       });
 
-    // Get the answer text
-    const fullAnswer = textContent?.text || "I couldn't generate an answer based on the search results.";
+    // Only show sources if we have real ones - NO fake fallbacks
+    
+    // Quick cleanup of text artifacts including ugly URLs
+    fullAnswer = fullAnswer
+      .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove **bold**
+      .replace(/\\text\{[^}]+\}/g, '') // Remove LaTeX
+      .replace(/\\\\/g, '').replace(/\\,/g, '') // Remove backslashes
+      .replace(/###\s*/g, '').replace(/\$\$[^$]*\$\$/g, '') // Remove headers/math
+      .replace(/\(\[([^\]]+)\]\([^)]+\)\)/g, '') // Remove ugly ([text](url)) citations
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Clean up [text](url) to just text
+      .replace(/\s+/g, ' ').trim(); // Normalize whitespace
+
+    // Only add citations if we have REAL sources with actual URLs
+    const hasRealSources = results.length > 0 && results.some(r => r.url && !r.url.startsWith('#'));
+    if (hasRealSources && fullAnswer.length > 50) {
+      const sentences = fullAnswer.split(/\.\s+/).slice(0, Math.min(results.length, 4));
+      fullAnswer = sentences.map((sentence, index) => {
+        if (sentence.length > 25 && !sentence.includes('[')) {
+          return sentence + ` [${index + 1}]`;
+        }
+        return sentence;
+      }).join('. ') + (fullAnswer.includes('.') ? '.' : '');
+    }
     
     // Initialize visualization data as null
     let visualizationData = null;
 
-    // Check if query needs visualization and use ONLY structured extraction
+    // Check if query needs visualization and use ONLY structured extraction (with timeout)
     if (queryNeedsVisualization(query)) {
       try {
-        const structuredResponse = await openai.chat.completions.create({
+        const vizTimeout = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Visualization timeout')), 8000)
+        );
+        
+        const vizPromise = openai.chat.completions.create({
           model: "gpt-4o-mini",
           messages: [
             {
               role: "system",
-              content: `Extract REAL numerical data from the web search results for visualization. 
-              CRITICAL: ONLY include data if you find actual numbers from the search results - NO estimates, approximations, or made-up data.
+              content: `Extract REAL numerical data from web search results for visualization. Be concise.
               
-              If real numerical data is found:
-              - Set chart_type to "bar" (for comparisons/rankings), "line" (for trends), or "pie" (for percentages)
-              - Provide a descriptive title
-              - Include the data source
-              - Extract 3-15 real data points
-              
-              If NO real numerical data is found:
-              - Set chart_type to "none"
-              - Set title and data_source to empty strings
-              - Set data_points to empty array`
+              If real numerical data found: set chart_type to "bar"/"line"/"pie", provide title, data_source, 3-15 data_points
+              If NO real data found: set chart_type to "none", empty title/data_source, empty data_points array`
             },
             {
               role: "user", 
-              content: `Web search results: ${fullAnswer}\n\nQuery: ${query}\n\nExtract real numerical data for visualization if it exists.`
+              content: `Results: ${fullAnswer.substring(0, 500)}...\n\nQuery: ${query}\n\nExtract numerical data for charts.`
             }
           ],
           response_format: {
             type: "json_schema",
             json_schema: {
-              name: "visualization_extraction",
+              name: "viz_data",
               strict: true,
-                             schema: {
-                 type: "object",
-                 properties: {
-                   chart_type: {
-                     type: "string",
-                     enum: ["bar", "line", "pie", "none"],
-                     description: "Chart type or 'none' if no real data found"
-                   },
-                   title: {
-                     type: "string",
-                     description: "Chart title or empty string if no data"
-                   },
-                   data_source: {
-                     type: "string", 
-                     description: "Where data came from or empty string if no data"
-                   },
-                   data_points: {
-                     type: "array",
-                     items: {
-                       type: "object",
-                       properties: {
-                         name: {
-                           type: "string",
-                           description: "Label for this data point"
-                         },
-                         value: {
-                           type: "number",
-                           description: "Actual numerical value from search results"
-                         }
-                       },
-                       required: ["name", "value"],
-                       additionalProperties: false
-                     },
-                     description: "Array of real data points, empty if no data found"
-                   }
-                 },
-                 required: ["chart_type", "title", "data_source", "data_points"],
-                 additionalProperties: false
-               }
+              schema: {
+                type: "object",
+                properties: {
+                  chart_type: { type: "string", enum: ["bar", "line", "pie", "none"] },
+                  title: { type: "string" },
+                  data_source: { type: "string" },
+                  data_points: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: { type: "string" },
+                        value: { type: "number" }
+                      },
+                      required: ["name", "value"],
+                      additionalProperties: false
+                    }
+                  }
+                },
+                required: ["chart_type", "title", "data_source", "data_points"],
+                additionalProperties: false
+              }
             }
           }
         });
 
-                 const result = structuredResponse.choices[0]?.message?.content;
-         if (result) {
-           const structured = JSON.parse(result);
-           if (structured.chart_type !== 'none' && structured.data_points && structured.data_points.length >= 3) {
-             visualizationData = {
-               type: structured.chart_type,
-               title: structured.title,
-               description: `Data visualization based on search results`,
-               dataSource: structured.data_source,
-               data: structured.data_points
-             };
-             console.log('🎯 TRUE Structured Output - Extracted real data:', structured.title);
-           }
-         }
+        const structuredResponse = await Promise.race([vizPromise, vizTimeout]) as any;
+        const result = structuredResponse.choices[0]?.message?.content;
+        
+        if (result) {
+          const structured = JSON.parse(result);
+          if (structured.chart_type !== 'none' && structured.data_points?.length >= 3) {
+            visualizationData = {
+              type: structured.chart_type,
+              title: structured.title,
+              description: `Data visualization based on search results`,
+              dataSource: structured.data_source,
+              data: structured.data_points
+            };
+            console.log('🎯 Fast viz extraction:', structured.title);
+          }
+        }
       } catch (error) {
-        console.log('Could not extract structured visualization data:', error);
+        console.log('Visualization extraction skipped due to timeout/error');
+        // Continue without visualization - don't block the response
       }
     }
 
-    // Save search to database (don't await to avoid slowing response)
-    supabase
-      .from('searches')
-      .insert({
-        query,
-        answer: fullAnswer,
-      })
-      .then(({ error }) => {
-        if (error) console.log('DB save error:', error);
-      });
+    // Database save removed for faster response times
 
 
 

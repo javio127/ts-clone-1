@@ -68,7 +68,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-16">
@@ -84,11 +84,11 @@ export default function Home() {
                 priority
               />
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent mb-4">
+            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-gray-800 via-gray-900 to-black bg-clip-text text-transparent mb-4">
               perplexity
             </h1>
           </div>
-          <p className="text-gray-400 text-lg font-light tracking-wide">
+          <p className="text-gray-600 text-lg font-light tracking-wide">
             Where knowledge begins
           </p>
         </div>
@@ -107,15 +107,15 @@ export default function Home() {
               <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-600 border-t-blue-500 mx-auto"></div>
               <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 opacity-20 blur-lg animate-pulse"></div>
             </div>
-            <p className="text-gray-400 font-light">Searching and analyzing results...</p>
+            <p className="text-gray-600 font-light">Searching and analyzing results...</p>
           </div>
         )}
 
         {/* Error State */}
         {error && (
           <div className="max-w-2xl mx-auto mb-8">
-            <div className="bg-red-900/20 border border-red-800/30 rounded-xl p-4 backdrop-blur-sm">
-              <p className="text-red-400">{error}</p>
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+              <p className="text-red-600">{error}</p>
             </div>
           </div>
         )}
