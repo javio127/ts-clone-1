@@ -13,10 +13,25 @@ interface SearchResult {
   sourceId: number;
 }
 
+interface ChartData {
+  type: 'bar' | 'line' | 'pie';
+  title: string;
+  description?: string;
+  dataSource?: string;
+  data: Array<{
+    name: string;
+    value: number;
+    [key: string]: unknown;
+  }>;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
+  colors?: string[];
+}
+
 interface SearchResponse {
   results: SearchResult[];
   answer: string;
-  visualizationData?: any;
+  visualizationData?: ChartData | null;
 }
 
 export default function Home() {

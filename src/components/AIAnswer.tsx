@@ -14,7 +14,7 @@ interface ChartData {
   data: Array<{
     name: string;
     value: number;
-    [key: string]: any;
+    [key: string]: unknown;
   }>;
   xAxisLabel?: string;
   yAxisLabel?: string;

@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       });
 
     // Get the answer text
-    let fullAnswer = textContent?.text || "I couldn't generate an answer based on the search results.";
+    const fullAnswer = textContent?.text || "I couldn't generate an answer based on the search results.";
     
     // Initialize visualization data as null
     let visualizationData = null;
