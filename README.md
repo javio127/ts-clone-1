@@ -205,7 +205,3 @@ Example queries to try:
 - **Modern Stack**: Next.js 14 + TypeScript + Supabase
 
 ---
-
-**Built with ❤️ for Hanover Takehome Interview**
-
-*"Much to learn you still have" - Yoda*
