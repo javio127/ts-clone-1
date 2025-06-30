@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     let fullAnswer = textContent?.text || "I couldn't generate an answer based on the search results.";
     
     // Try to extract real citations from annotations
-    let results = annotations
+    const results = annotations
       .filter((annotation): annotation is URLCitation => annotation.type === 'url_citation')
       .map((annotation, index) => {
         const cleanUrl = annotation.url.split('?')[0];
@@ -170,7 +170,7 @@ export async function POST(request: NextRequest) {
           }
         });
 
-        const structuredResponse = await Promise.race([vizPromise, vizTimeout]) as any;
+        const structuredResponse = await Promise.race([vizPromise, vizTimeout]) as { choices: Array<{ message: { content: string } }> };
         const result = structuredResponse.choices[0]?.message?.content;
         
         if (result) {
@@ -186,15 +186,25 @@ export async function POST(request: NextRequest) {
             console.log('🎯 Fast viz extraction:', structured.title);
           }
         }
-      } catch (error) {
+      } catch {
         console.log('Visualization extraction skipped due to timeout/error');
         // Continue without visualization - don't block the response
       }
     }
 
-    // Database save removed for faster response times
-
-
+    // Save to database asynchronously (fire-and-forget, no blocking)
+    setImmediate(() => {
+      supabase
+        .from('searches')
+        .insert({
+          query,
+          answer: fullAnswer,
+        })
+        .then(({ error }) => {
+          if (error) console.log('DB save error (non-blocking):', error);
+          else console.log('✅ Search saved to history');
+        });
+    });
 
     return NextResponse.json({
       results,
