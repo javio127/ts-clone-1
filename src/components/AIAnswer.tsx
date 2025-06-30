@@ -23,14 +23,12 @@ export default function AIAnswer({ answer, results }: AIAnswerProps) {
     ];
     
     let bestMatch = null;
-    let bestRegex = null;
     
     // Find which regex matches
     for (const regex of citationRegexes) {
       const matches = [...text.matchAll(regex)];
       if (matches.length > 0) {
         bestMatch = matches;
-        bestRegex = regex;
         break;
       }
     }
