@@ -1,4 +1,4 @@
-# Perplexity Clone - Hanover Takehome
+# Perplexity Clone 
 
 A TypeScript-based clone of Perplexity AI that provides AI-powered answers with citations based on real-time search results.
 
